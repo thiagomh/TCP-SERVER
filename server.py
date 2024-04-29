@@ -29,8 +29,19 @@ class tcp_segment:
 
             self.data = data
 
-def client_request():
-      return 
+
+def client_request(clientSocket: socket):
+      while True:
+            data = clientSocket.recv(1000)
+
+            if not data:
+                  print('Bye')
+                  break
+
+            data = data[::-1]
+
+            clientSocket.send(data)
+      clientSocket.close()
 
 def main():
       # Criando socket TCP 
@@ -46,7 +57,7 @@ def main():
 
             print("Connected to:", client_addr[0], ":", client_addr[1])
 
-            start_new_thread(client_request, (clientSocket))
+            start_new_thread(client_request(clientSocket), (clientSocket))
       
 
 if __name__ == "__main__":
