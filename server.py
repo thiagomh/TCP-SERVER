@@ -1,6 +1,6 @@
 import socket
 #import struct
-from _thread import *
+# from _thread import *
 import threading
 
 IP = '127.0.0.1'
@@ -29,6 +29,29 @@ class tcp_segment:
 
             self.data = data
 
+def get_file(request):
+      try:
+            with open(f"data/{request[1]}", "rb") as file:
+                        return file.read()
+      except:
+            return "Arquivo não encontrado" 
+
+def send_file(clientSocket: socket, file: bytes):
+      return  
+
+def client_request2(clientSocket: socket):
+      request = clientSocket.socket.recv(1024)
+      request = request.decode().split('/')
+      
+      if request[0] == 'GET':
+            file = get_file(request)
+            if file == "Arquivo não encontrado":
+                  clientSocket.socket.send(file.encode())
+            else:
+                  send_file(clientSocket, file)
+      print("Arquivo não encontrado")
+      return            
+             
 
 def client_request(clientSocket: socket):
       while True:
@@ -55,10 +78,9 @@ def main():
       while True:
             clientSocket, client_addr = serverSocket.accept()
 
-            print("Connected to:", client_addr[0], ":", client_addr[1])
-
-            start_new_thread(client_request(clientSocket), (clientSocket))
-      
+            print(f"Connected to: {client_addr[0]}:{client_addr[1]}")
+            thread = threading.Thread(target=client_request(clientSocket))
+            thread.start()
 
 if __name__ == "__main__":
       main()
