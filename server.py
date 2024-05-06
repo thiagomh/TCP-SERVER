@@ -12,12 +12,13 @@ def get_file(request):
             with open(f"data/{request[1]}", "rb") as file:
                         return file.read()
       except:
-            return "Arquivo não encontrado" 
+            return "Arquivo não encontrado"
 
 def send_file(clientSocket: socket, file: bytes):
       segments = []
       for i in range(0, len(file), BUFFER):
             segment = file[i:i+BUFFER]
+            
             segments.append(segment)
 
       i = 0
@@ -25,7 +26,7 @@ def send_file(clientSocket: socket, file: bytes):
             # calcular sum
             h = sha256(segments[i])
             checksum = h.hexdigest()
-            
+
             packet = segments[i]
             clientSocket.socket.send(packet)
             i += 1
