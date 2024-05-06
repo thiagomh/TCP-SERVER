@@ -1,33 +1,11 @@
 import socket
-#import struct
-# from _thread import *
 import threading
+from hashlib import sha256
 
 IP = '127.0.0.1'
 PORT = 4455
 ADDR = (IP, PORT)
 BUFFER = 1024
-
-class tcp_segment:
-      # source_port(2 bytes) - dest_port(2 bytes) - seq_num(4 bytes)
-      # ack_num(4 bytes) - rcv_window(2 bytes) - checksum(2 bytes)
-      # header_len; ack; rst; syn; fin (1 byte)   
-
-      MSS = 1000
-      HEADER_FORMAT = 'H H I I H H b'
-
-      def __init__(self, source_port, dest_port, seq_num, ack_num, rcv_window, data, FIN) -> None:
-            self.source_port = source_port
-            self.dest_port = dest_port
-            self.seq_num = seq_num
-            self.ack_num = ack_num
-            self.rcv_window = rcv_window
-
-            self.ack = 1
-            self.fin = FIN
-            self.syn = 0
-
-            self.data = data
 
 def get_file(request):
       try:
@@ -37,6 +15,22 @@ def get_file(request):
             return "Arquivo não encontrado" 
 
 def send_file(clientSocket: socket, file: bytes):
+      segments = []
+      for i in range(0, len(file), BUFFER):
+            segment = file[i:i+BUFFER]
+            segments.append(segment)
+
+      i = 0
+      while i < len(segments):
+            # calcular sum
+            h = sha256(segments[i])
+            checksum = h.hexdigest()
+            
+            packet = segments[i]
+            clientSocket.socket.send(packet)
+            i += 1
+
+      clientSocket.socket.send('EOF'.encode("utf-8"))
       return  
 
 def client_request2(clientSocket: socket):
