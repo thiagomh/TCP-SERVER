@@ -1,81 +1,50 @@
-import socket
+from socket import socket, AF_INET, SOCK_STREAM
 import threading
-from hashlib import sha256
 
-IP = '127.0.0.1'
-PORT = 4455
-ADDR = (IP, PORT)
-BUFFER = 1024
+def close_connection(socket: socket, addr):
+      socket.send(b"SAIR")
+      print(f"Encerrando conexão com cliente: {addr[0]}:{addr[1]}")
+      socket.close()
 
-def get_file(request):
-      try:
-            with open(f"data/{request[1]}", "rb") as file:
-                        return file.read()
-      except:
-            return "Arquivo não encontrado"
-
-def send_file(clientSocket: socket, file: bytes):
-      segments = []
-      for i in range(0, len(file), BUFFER):
-            segment = file[i:i+BUFFER]
-            
-            segments.append(segment)
-
-      i = 0
-      while i < len(segments):
-            # calcular sum
-            h = sha256(segments[i])
-            checksum = h.hexdigest()
-
-            packet = segments[i]
-            clientSocket.socket.send(packet)
-            i += 1
-
-      clientSocket.socket.send('EOF'.encode("utf-8"))
-      return  
-
-def client_request2(clientSocket: socket):
-      request = clientSocket.socket.recv(1024)
-      request = request.decode().split('/')
-      
-      if request[0] == 'GET':
-            file = get_file(request)
-            if file == "Arquivo não encontrado":
-                  clientSocket.socket.send(file.encode())
-            else:
-                  send_file(clientSocket, file)
-      print("Arquivo não encontrado")
-      return            
-             
-
-def client_request(clientSocket: socket):
+def handle_client(socket: socket, addr):
       while True:
-            data = clientSocket.recv(1000)
+            request = socket.recv(1024)
+            request = request.decode().split("/")
 
-            if not data:
-                  print('Bye')
+            print(f"request: {request}")
+
+            if request[0] == "SAIR":
+                  close_connection(socket, addr)
                   break
 
-            data = data[::-1]
+            elif request == "ARQUIVO":
+                  print("Arquivo")
+            
+            elif request[0] == "CHAT":
+                  print("Chat") 
 
-            clientSocket.send(data)
-      clientSocket.close()
+            else: 
+                  socket.send("Requisição inválida.".encode())
 
-def main():
-      # Criando socket TCP 
-      serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      # Associando socket a um endereço(IP+PORTA)
-      serverSocket.bind(ADDR)
-      # Abre a porta na qual no servidor vai aguardar conexões TCP
-      serverSocket.listen()
-      print(f"Server running {ADDR}")
+def start_server():
+      IP = '127.0.0.1'
+      PORT = 50007
+      ADDR = (IP, PORT)
+      # Criando socket TCP
+      server_socket = socket(AF_INET, SOCK_STREAM)
+      # Associando socket a um endereço
+      server_socket.bind(ADDR)
+      # Abre a porta na qual o servidor vai aguardar conexões
+      server_socket.listen(5)
+      print(f"Server rodando em {ADDR[0]}:{ADDR[1]}")
 
       while True:
-            clientSocket, client_addr = serverSocket.accept()
-
-            print(f"Connected to: {client_addr[0]}:{client_addr[1]}")
-            thread = threading.Thread(target=client_request(clientSocket))
+            # Aceitando conexões TCP
+            client_socket, client_addr = server_socket.accept()
+            
+            print(f"Server conectado ao cliente {client_addr[0]}:{client_addr[1]}\n")
+            thread = threading.Thread(target=handle_client, args=(client_socket, client_addr))
             thread.start()
 
 if __name__ == "__main__":
-      main()
+      start_server()
