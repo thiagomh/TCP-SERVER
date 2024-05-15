@@ -6,13 +6,16 @@ def options_menu(socket: socket):
       match opt:
             case 1:
                   socket.send(b"SAIR")
-                  socket.close() 
-                  return "SAIR"
+                  resp = socket.recv(1024)
+      
+                  if resp.decode() == "OK":
+                        print("Conexão encerrada")
+                        return "SAIR"
             case 2: 
-                  socket.send(b"Abrir arquivo")
+                  socket.send("ARQUIVO".encode())
                   #file_request(socket)
             case 3:
-                  socket.send(b"chat")
+                  socket.send("CHAT".encode())
                   #chat(socket)
             case _:
                   print("Opção inválida.")

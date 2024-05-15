@@ -2,7 +2,7 @@ from socket import socket, AF_INET, SOCK_STREAM
 import threading
 
 def close_connection(socket: socket, addr):
-      socket.send(b"SAIR")
+      socket.send(b"OK")
       print(f"Encerrando conexão com cliente: {addr[0]}:{addr[1]}")
       socket.close()
 
@@ -17,7 +17,7 @@ def handle_client(socket: socket, addr):
                   close_connection(socket, addr)
                   break
 
-            elif request == "ARQUIVO":
+            elif request[0] == "ARQUIVO":
                   print("Arquivo")
             
             elif request[0] == "CHAT":
