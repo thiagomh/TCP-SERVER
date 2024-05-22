@@ -1,10 +1,38 @@
 from socket import socket, AF_INET, SOCK_STREAM
+import hashlib
 import threading
+import os
 
 def close_connection(socket: socket, addr):
       socket.send(b"OK")
       print(f"Encerrando conexão com cliente: {addr[0]}:{addr[1]}")
       socket.close()
+
+def send_file(socket: socket, addr, request):
+      filename = request[1]
+      file_path = f"data/{filename}" 
+      if os.path.exists(file_path):
+            socket.send(b"OK")
+            with open(file_path, "rb") as file:
+                  data = file.read()
+                  file_hash = hashlib.sha256(data).hexdigest()
+                  file_size = os.path.getsize(file_path)
+                  return_msg = f"OK\n{file_size}\n{file_hash}".encode() 
+                  socket.send(return_msg)
+            if data:
+                  segments = []
+
+                  for i in range(0, file_size, 512):
+                        segment = data[i:i+512]
+                        segments.append(segment)
+
+                  i = 0 
+                  while i < len(segments):
+                        socket.send(segments[i])
+                  socket.send("EOF".encode())
+
+      else:
+            socket.send("Arquivo não encontrado".encode())
 
 def handle_client(socket: socket, addr):
       while True:
@@ -18,7 +46,8 @@ def handle_client(socket: socket, addr):
                   break
 
             elif request[0] == "ARQUIVO":
-                  print("Arquivo")
+                  send_file(socket, addr, request)
+                  break
             
             elif request[0] == "CHAT":
                   print("Chat") 
