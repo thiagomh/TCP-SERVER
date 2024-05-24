@@ -1,53 +1,74 @@
 from socket import socket, AF_INET, SOCK_STREAM
 import os
+import hashlib
+
+BUFFER = 1024
 
 def options_menu(socket: socket):
       print("1-Sair\n2-Arquivo\n3-Chat\n")
-      opt = int(input("Escolha uma opção: "))
-      match opt:
-            case 1:
-                  # Enviando pedido pra fechar conexão 
-                  socket.send(b"SAIR")
-                  # Recebendo confirmação que a conexão foi encerrada
-                  resp = socket.recv(1024)
+      option = int(input("Escolha uma opção: "))
+
+      if option == 1: 
+            # Enviando pedido pra fechar conexão 
+            socket.send(b"SAIR")
+            # Recebendo confirmação que a conexão foi encerrada
+            resp = socket.recv(1024)
       
-                  if resp.decode() == "OK":
-                        print("Conexão encerrada")
-                        return "SAIR"
-            case 2:
-                  filename = input("Insira o nome do arquivo (nome.txt): ")
-                  socket.send(f"ARQUIVO/{filename}".encode())
-                  file_request(socket, filename)
-            case 3:
-                  socket.send("CHAT".encode())
-                  #chat(socket)
-            case _:
-                  print("Opção inválida.")
-                  options_menu(socket)
+            if resp.decode() == "OK":
+                  print("Conexão encerrada")
+                  return "SAIR"
+            
+      elif option == 2:
+            filename = input("Insira o nome do arquivo (nome.txt): ")
+            socket.send(f"ARQUIVO/{filename}".encode())
+            file_request(socket, filename)
+
+      elif option == 3:
+            socket.send("CHAT".encode())
+            #chat(socket)
+      
+      else:
+          print("Opção inválida.")
+          options_menu(socket)  
 
 def file_request(socket: socket, filename):
-      if os.path.exists(f"./received_data/{filename}"):
-            with open(f"./received_data/{filename}", "w"):
-                  pass
+      # Recebendo dados do arquivo (Arquivo encontrado/Tamanho/Hash)
+      data = socket.recv(BUFFER).decode().split("/")
 
-      file = open(f"./received_data/{filename}", "a", newline="\r\n")
+      # Arquivo não encontrado
+      if data[0] == "NOK":
+            print(data[1])
+            return 
 
-      data = socket.recv(512)
-      if data == b"OK":
-            data = socket.recv(512)
-            data = data.decode()
-            data.split("\n")
-            print(data, "\n")
+      # Criando arquivo do lado do cliente
+      save_path = f"./received_data/{filename}"
+      os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-            while data != b"EOF":
-                  data = socket.recv(512)
-                  data = data.decode()
-                  file.write(data)
+      # Abrindo arquivo para escrita binária 
+      with open(save_path, "wb") as file: 
 
-            file.close()
+            recv_data = b""       
+            segment = b""
+
+            while True:
+                  # Recebendo segmentoss
+                  segment = socket.recv(BUFFER)
+                  recv_data += segment
                   
-      else:
-            print(data.decode())
+                  # Caso o tamanho do segmento seja menor que o buffer
+                  # significa que é o ultimo a ser recebido
+                  if len(segment) < BUFFER:
+                        break
+            
+            received_hash = hashlib.sha256(recv_data).hexdigest()
+            # Verificando integridade do arquivo      
+            if received_hash == data[2]:
+                  file.write(recv_data)
+                  print(f"Arquivo {filename} recebido e salvo com sucesso.")
+            else:
+                  print("Erro na verificação de integridade do arquivo.")
+                  
+            file.close()
 
 def start_client():
       # IP e porta referentes ao endereço do server
