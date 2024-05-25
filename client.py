@@ -8,8 +8,7 @@ def options_menu(socket: socket):
       print("1-Sair\n2-Arquivo\n3-Chat\n")
       option = int(input("Escolha uma opção: "))
 
-      if option == 1: 
-            # Enviando pedido pra fechar conexão 
+      if option == 1:  
             socket.send(b"SAIR")
             # Recebendo confirmação que a conexão foi encerrada
             resp = socket.recv(1024)
@@ -29,24 +28,6 @@ def options_menu(socket: socket):
       else:
           print("Opção inválida.")
           options_menu(socket)  
-
-def chat(socket: socket, addr):
-      print("[A] - Sair\n")
-      socket.send(b"CHAT")
-      
-      resposta = socket.recv(1024)
-      print(f"Server: {resposta.decode()}")
-
-      while True:
-            mensagem = input(": ")
-            socket.send(mensagem.encode())
-
-            if mensagem == "A":
-                  print(f"Encerrando chat...\n")
-                  break
-
-            resposta = socket.recv(1024)
-            print(f"Server : {resposta.decode()}")
 
 def file_request(socket: socket, filename):
       # Recebendo dados do arquivo (Arquivo encontrado/Tamanho/Hash)
@@ -86,6 +67,24 @@ def file_request(socket: socket, filename):
                   print("Erro na verificação de integridade do arquivo.\n")
                   
             file.close()
+
+def chat(socket: socket, addr):
+      print("[A] - Sair\n")
+      socket.send(b"CHAT")
+      
+      resposta = socket.recv(1024)
+      print(f"Server: {resposta.decode()}")
+
+      while True:
+            mensagem = input(": ")
+            socket.send(mensagem.encode())
+
+            if mensagem == "A":
+                  print(f"Encerrando chat...\n")
+                  break
+
+            resposta = socket.recv(1024)
+            print(f"Server : {resposta.decode()}")
 
 def start_client():
       # IP e porta referentes ao endereço do server
