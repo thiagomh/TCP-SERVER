@@ -7,7 +7,7 @@ BUFFER = 1024
 
 def close_connection(socket: socket, addr):
       socket.send(b"OK")
-      print(f"Encerrando conexão com cliente: {addr[0]}:{addr[1]}")
+      print(f"Encerrando conexão com cliente: {addr[0]}:{addr[1]}\n")
       socket.close()
 
 def send_file(socket: socket, addr, request):
@@ -18,9 +18,7 @@ def send_file(socket: socket, addr, request):
                   data = file.read()
                   file_hash = hashlib.sha256(data).hexdigest()
                   file_size = os.path.getsize(file_path)
-                  print(file_size, len(data))
-                  return_msg = f"OK/{file_size}/{file_hash}".encode()
-                  print("Enviando hash\n") 
+                  return_msg = f"OK/{file_size}/{file_hash}".encode() 
                   socket.send(return_msg)
             if data:
                   segments = []
@@ -33,28 +31,43 @@ def send_file(socket: socket, addr, request):
                   for segment in segments:
                         socket.send(segment)
 
-                  print("Transferência finalizada.")
+                  print("Transferência finalizada.\n")
 
       else:
             socket.send("NOK/Arquivo não encontrado".encode())
+
+def chat(socket: socket, addr):
+      print(f"Iniciando chat com {addr[0]}:{addr[1]}")
+      socket.send(b"OK")
+
+      while True: 
+            mensagem = socket.recv(1024)
+            print(f"Cliente {addr[0]}:{addr[1]} : {mensagem.decode()}")
+
+            if mensagem == b"A":
+                  print(f"Encerrando chat com {addr}\n")
+                  break
+
+            resposta = input(": ")
+            socket.send(resposta.encode())
 
 def handle_client(socket: socket, addr):
       while True:
             request = socket.recv(BUFFER)
             request = request.decode().split("/")
 
-            print(f"request: {request}")
+            print(f"request: {request} - {addr}")
 
             if request[0] == "SAIR":
                   close_connection(socket, addr)
-                  continue
+                  break
 
             elif request[0] == "ARQUIVO":
                   send_file(socket, addr, request)
                   continue
             
             elif request[0] == "CHAT":
-                  print("Chat") 
+                  chat(socket, addr) 
                   continue
 
             else: 

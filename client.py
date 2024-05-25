@@ -24,12 +24,29 @@ def options_menu(socket: socket):
             file_request(socket, filename)
 
       elif option == 3:
-            socket.send("CHAT".encode())
-            #chat(socket)
+            chat(socket)
       
       else:
           print("Opção inválida.")
           options_menu(socket)  
+
+def chat(socket: socket, addr):
+      print("[A] - Sair\n")
+      socket.send(b"CHAT")
+      
+      resposta = socket.recv(1024)
+      print(f"Server: {resposta.decode()}")
+
+      while True:
+            mensagem = input(": ")
+            socket.send(mensagem.encode())
+
+            if mensagem == "A":
+                  print(f"Encerrando chat...\n")
+                  break
+
+            resposta = socket.recv(1024)
+            print(f"Server : {resposta.decode()}")
 
 def file_request(socket: socket, filename):
       # Recebendo dados do arquivo (Arquivo encontrado/Tamanho/Hash)
@@ -64,9 +81,9 @@ def file_request(socket: socket, filename):
             # Verificando integridade do arquivo      
             if received_hash == data[2]:
                   file.write(recv_data)
-                  print(f"Arquivo {filename} recebido e salvo com sucesso.")
+                  print(f"Arquivo {filename} recebido e salvo com sucesso.\n")
             else:
-                  print("Erro na verificação de integridade do arquivo.")
+                  print("Erro na verificação de integridade do arquivo.\n")
                   
             file.close()
 
