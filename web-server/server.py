@@ -4,36 +4,75 @@ import os
 
 def handle_client(socket: socket, client_addr):
       request = socket.recv(1024).decode()
-      headers = request.split('\n')
-      print(f"Requisição do cliente({client_addr[0]}:{client_addr[1]}): {headers[0]}")
+      if request:
+            headers = request.split('\n')
+            print(f"Requisição do cliente({client_addr[0]}:{client_addr[1]}): {headers[0]}")
 
-      method = headers[0].split()[0]
-      route = headers[0].split()[1]
-      
-      if method != 'GET':
-            return 
-      
-      if route.endswith('.html'):
-            send_file(socket, route)
-      
-      elif route.endswith('.jpg') or route.endswith('.png'):
-            return
-      
-      else:
-            print("erro formato")
+            method = headers[0].split()[0]
+            route = headers[0].split()[1]
+            
+            if method != 'GET':
+                  send_405(socket)
+                  return 
+            
+            if route.endswith('.html'):
+                  send_file(socket, route)
+            
+            elif route.endswith('.jpg') or route.endswith('.png'):
+                  send_image(socket, route)
+            
+            elif route.endswith(".ico"):
+                  pass
+
+            else:
+                  print("erro formato")
+
+      socket.close()
 
 def send_file(socket: socket, route: str):
-      file_path = f"web-pages{route}"
+      file_path = f"web-server/web-pages{route}"
       if os.path.isfile(file_path):
             with open(file_path, "rb") as file:
                   response_body = file.read()
 
-            response_header = (
-
-            )
-            socket.send(response_body)
+            response_header = ("HTTP/1.1 200 OK\r\n"
+                        "Server: Microsoft-IIS/4.0\r\n"
+                        f"Content-Length: {len(response_body)}\r\n"
+                        "Connection: close\r\n"
+                        "\r\n")
+            socket.send(response_header.encode("utf-8") + response_body)
       else:
-            print("aRQUIVO NAO ENCONTRADO")
+            print("ERRO - Arquivo inexistente.\n")
+            send_404(socket)
+
+def send_image(socket: socket, route: str):
+      file_path = f"web-server/images{route}"
+      if os.path.isfile(file_path):
+            with open(file_path, "rb") as file:
+                  response_body = file.read()
+
+            response_header = ("HTTP/1.1 200 OK\r\n"
+                        "Server: Microsoft-IIS/4.0\r\n"
+                        f"Content-Length: {len(response_body)}\r\n"
+                        "Connection: close\r\n"
+                        "\r\n")
+            
+            socket.send(response_header.encode() + response_body)
+      else:
+            print("404 ERRO - Arquivo Inexistente.\n")
+            send_404(socket)
+
+def send_404(socket: socket):
+      response_header = ("HTTP/1.1 404 Not Found\r\n"
+                        "Server: Microsoft-IIS/4.0\r\n"
+                        "Content-Type: text/html\r\n"
+                        "Connection: close\r\n"
+                        "\r\n")
+      response_body = b"<html><body><h1>404 Not Found</h1></body></html>"
+      socket.send(response_header.encode() + response_body) 
+
+def send_405(socket: socket):
+      pass
 
 def start_server():
       IP = '127.0.0.1'
