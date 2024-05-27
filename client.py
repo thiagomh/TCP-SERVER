@@ -15,7 +15,7 @@ def options_menu(socket: socket):
       
             if resp.decode() == "OK":
                   print("Conexão encerrada")
-                  return "SAIR"
+                  return True
             
       elif option == 2:
             filename = input("Insira o nome do arquivo (nome.txt): ")
@@ -97,8 +97,8 @@ def start_client():
 
       # Loop do menu
       while True:
-            r = options_menu(client_socket)
-            if r == "SAIR":
+            close: bool = options_menu(client_socket)
+            if close == True:
                   break
 
 if __name__ == "__main__":
