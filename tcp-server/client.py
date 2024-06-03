@@ -39,7 +39,7 @@ def file_request(socket: socket, filename):
             return 
 
       # Criando arquivo do lado do cliente
-      save_path = f"./received_data/{filename}"
+      save_path = f"tcp-server/received_data/{filename}"
       os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
       # Abrindo arquivo para escrita binária 
@@ -64,11 +64,11 @@ def file_request(socket: socket, filename):
                   file.write(recv_data)
                   print(f"Arquivo {filename} recebido e salvo com sucesso.\n")
             else:
-                  print("Erro na verificação de integridade do arquivo.\n")
+                  print("Erro na verificação de integridade do arquivo.\nTente novamente.\n")
                   
             file.close()
 
-def chat(socket: socket, addr):
+def chat(socket: socket):
       print("[A] - Sair\n")
       socket.send(b"CHAT")
       

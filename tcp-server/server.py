@@ -7,12 +7,12 @@ BUFFER = 1024
 
 def close_connection(socket: socket, addr):
       socket.send(b"OK")
-      print(f"Encerrando conexão com cliente: {addr[0]}:{addr[1]}\n")
+      print(f"Encerrando conexão com cliente {addr[0]}:{addr[1]}\n")
       socket.close()
 
 def send_file(socket: socket, addr, request):
       filename = request[1]
-      file_path = f"data/{filename}" 
+      file_path = f"tcp-server/data/{filename}" 
       if os.path.exists(file_path):
             with open(file_path, "rb") as file:
                   data = file.read()
@@ -31,7 +31,7 @@ def send_file(socket: socket, addr, request):
                   for segment in segments:
                         socket.send(segment)
 
-                  print("Transferência finalizada.\n")
+                  print(f"Transferência de {filename} para {addr[0]}:{addr[1]} finalizada.\n")
 
       else:
             socket.send("NOK/Arquivo não encontrado".encode())
