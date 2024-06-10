@@ -6,15 +6,21 @@ BUFFER = 1024
 
 def options_menu(socket: socket):
       print("1-Sair\n2-Arquivo\n3-Chat\n")
-      option = int(input("Escolha uma opção: "))
+      option = input("Escolha uma opção: ")
+      try:
+            option = int(option)
+      except:
+            print("Opção inválida.")
+            options_menu(socket) 
 
       if option == 1:  
             socket.send(b"SAIR")
             # Recebendo confirmação que a conexão foi encerrada
-            resp = socket.recv(1024)
+            resp = socket.recv(BUFFER)
       
             if resp.decode() == "OK":
                   print("Conexão encerrada")
+                  socket.close()
                   return True
             
       elif option == 2:
@@ -51,6 +57,10 @@ def file_request(socket: socket, filename):
             while True:
                   # Recebendo segmentoss
                   segment = socket.recv(BUFFER)
+                  if len(segment) != BUFFER:
+                        print("Pacote com erro")
+                        break
+                  
                   recv_data += segment
                   
                   # Caso o tamanho do segmento seja menor que o buffer

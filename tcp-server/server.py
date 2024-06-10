@@ -16,9 +16,11 @@ def send_file(socket: socket, addr, request):
       if os.path.exists(file_path):
             with open(file_path, "rb") as file:
                   data = file.read()
+                  # Calculando dados do arquivo 
                   file_hash = hashlib.sha256(data).hexdigest()
                   file_size = os.path.getsize(file_path)
-                  return_msg = f"OK/{file_size}/{file_hash}".encode() 
+                  num_segments: int = file_size/BUFFER
+                  return_msg = f"OK/{file_size}/{file_hash}/{num_segments}".encode() 
                   socket.send(return_msg)
             if data:
                   segments = []
@@ -28,8 +30,12 @@ def send_file(socket: socket, addr, request):
                         segments.append(segment)
 
                   print("Iniciando envio de pacotes...")
+
+                  i = 0
                   for segment in segments:
+                        print(f"enviando: {i} - {len(segment)}")
                         socket.send(segment)
+                        i += 1
 
                   print(f"Transferência de {filename} para {addr[0]}:{addr[1]} finalizada.\n")
 
@@ -74,7 +80,7 @@ def handle_client(socket: socket, addr):
                   socket.send("Requisição inválida.".encode())
 
 def start_server():
-      IP = '127.0.0.1'
+      IP = '0.0.0.0'
       PORT = 50007
       ADDR = (IP, PORT)
       # Criando socket TCP
@@ -82,8 +88,8 @@ def start_server():
       # Associando socket a um endereço
       server_socket.bind(ADDR)
       # Abre a porta na qual o servidor vai aguardar conexões
-      server_socket.listen(5)
-      print(f"Server rodando em {ADDR[0]}:{ADDR[1]}")
+      server_socket.listen()
+      print(f"Server ouvindo em {ADDR[0]}:{ADDR[1]}")
 
       while True:
             # Aceitando conexões TCP
@@ -93,6 +99,7 @@ def start_server():
             print(f"Server conectado ao cliente {client_addr[0]}:{client_addr[1]}\n")
             thread = threading.Thread(target=handle_client, args=(client_socket, client_addr))
             thread.start()
+            print(f"[Número de conexões]: {threading.active_count() - 1}\n")
 
 if __name__ == "__main__":
       start_server()
