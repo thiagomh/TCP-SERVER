@@ -64,13 +64,10 @@ def file_request(socket: socket, filename):
             
             received_hash = hashlib.sha256(recv_data).hexdigest()
             # Verificando integridade do arquivo   
-            print(f"{received_hash} - {data[2]}")   
-            #print(recv_data.decode())
             if received_hash == data[2]:
                   file.write(recv_data)
                   print(f"Arquivo {filename} recebido e salvo com sucesso.\n")
             else:
-                  file.write(recv_data)
                   print("Erro na verificação de integridade do arquivo.\nTente novamente.\n")
                   
             file.close()

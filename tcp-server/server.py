@@ -32,10 +32,8 @@ def send_file(socket: socket, addr, request):
                   print("Iniciando envio de pacotes...")
 
                   for segment in segments:
-                        # print(f"enviando: {i} - {len(segment)}")
                         socket.send(segment)
 
-                  # socket.send("EOF".encode())
                   print(f"Transferência de {filename} para {addr[0]}:{addr[1]} finalizada.\n")
 
       else:
