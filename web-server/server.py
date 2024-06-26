@@ -30,7 +30,7 @@ def handle_client(socket: socket, client_addr):
                         send_415(socket)
 
       except Exception as e:
-            send_404()
+            send_500(socket)
       finally:
             socket.close()
 

@@ -31,12 +31,11 @@ def send_file(socket: socket, addr, request):
 
                   print("Iniciando envio de pacotes...")
 
-                  i = 0
                   for segment in segments:
-                        print(f"enviando: {i} - {len(segment)}")
+                        # print(f"enviando: {i} - {len(segment)}")
                         socket.send(segment)
-                        i += 1
 
+                  # socket.send("EOF".encode())
                   print(f"Transferência de {filename} para {addr[0]}:{addr[1]} finalizada.\n")
 
       else:
@@ -80,7 +79,7 @@ def handle_client(socket: socket, addr):
                   socket.send("Requisição inválida.".encode())
 
 def start_server():
-      IP = '0.0.0.0'
+      IP = '192.168.1.18'
       PORT = 50007
       ADDR = (IP, PORT)
       # Criando socket TCP

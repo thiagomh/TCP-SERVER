@@ -20,7 +20,6 @@ def options_menu(socket: socket):
       
             if resp.decode() == "OK":
                   print("Conexão encerrada")
-                  socket.close()
                   return True
             
       elif option == 2:
@@ -53,27 +52,25 @@ def file_request(socket: socket, filename):
 
             recv_data = b""       
             segment = b""
+            file_size = int(data[1])
+            total_recv = 0
 
-            while True:
-                  # Recebendo segmentoss
+            while total_recv < file_size:
+                  # Recebendo segmentos
                   segment = socket.recv(BUFFER)
-                  if len(segment) != BUFFER:
-                        print("Pacote com erro")
-                        break
-                  
                   recv_data += segment
+                  total_recv += len(segment)
                   
-                  # Caso o tamanho do segmento seja menor que o buffer
-                  # significa que é o ultimo a ser recebido
-                  if len(segment) < BUFFER:
-                        break
             
             received_hash = hashlib.sha256(recv_data).hexdigest()
-            # Verificando integridade do arquivo      
+            # Verificando integridade do arquivo   
+            print(f"{received_hash} - {data[2]}")   
+            #print(recv_data.decode())
             if received_hash == data[2]:
                   file.write(recv_data)
                   print(f"Arquivo {filename} recebido e salvo com sucesso.\n")
             else:
+                  file.write(recv_data)
                   print("Erro na verificação de integridade do arquivo.\nTente novamente.\n")
                   
             file.close()
@@ -98,7 +95,8 @@ def chat(socket: socket):
 
 def start_client():
       # IP e porta referentes ao endereço do server
-      IP = '127.0.0.1'
+      #IP = '127.0.0.1'
+      IP = '192.168.1.18'
       PORT = 50007
       # Criando socket do cliente
       client_socket = socket(AF_INET, SOCK_STREAM)
